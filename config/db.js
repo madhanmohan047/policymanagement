@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
 
-const dbUrl = process.env.NODE_ENV === 'production' ? process.env.CLOUD_MONGO_URI : process.env.MONGO_URI;
+const dbUrl = process.env.MONGO_URI;
 
 if(!dbUrl) {
-    console.error('Database connection string is not defined. Please set MONGO_URI or CLOUD_MONGO_URI in your environment variables.');
+    console.error('Database connection string is not defined. Please set MONGO_URI in your environment variables.');
     process.exit(1);
 }
 
