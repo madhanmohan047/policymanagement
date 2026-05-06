@@ -22,7 +22,7 @@ app.use('/api/accounts', accountRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/admin', adminRoutes);
 
-const PORT = 8180;
+const PORT = process.env.PORT || 8180;
 
 const startServer = async () => {
     try {
