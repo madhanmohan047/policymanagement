@@ -9,4 +9,4 @@ const coverageSchema = new mongoose.Schema({
     createdBy: String
 }, { timestamps: true });
 
-module.exports =  mongoose.model('Coverage', coverageSchema);
+module.exports =  mongoose.model('Coverage', coverageSchema, 'db_coverage');

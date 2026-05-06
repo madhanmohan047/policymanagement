@@ -11,4 +11,4 @@ const driverSchema = new mongoose.Schema({
     violations: [String]
 }, { timestamps: true });
 
-module.exports = mongoose.model('Driver', driverSchema);
+module.exports = mongoose.model('Driver', driverSchema, 'db_driver');

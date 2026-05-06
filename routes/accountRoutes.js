@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { Account, Address, Contact } = require('../models');
+const { Account, Address, Contact, Job } = require('../models'); 
 
-// --- ACCOUNT ROUTES ---
 
 /**
  * @openapi
@@ -17,8 +16,8 @@ const { Account, Address, Contact } = require('../models');
 router.get('/', async (req, res) => {
     try {
         const accounts = await Account.find()
-            .populate('accountHolderId')
-            .populate('primaryLocationId')
+            .populate('accountHolder')
+            .populate('primaryLocation')
             .sort({ createdAt: -1 }); 
         res.json(accounts);
     } catch (err) {
@@ -43,32 +42,46 @@ router.get('/', async (req, res) => {
  *         description: Account created successfully
  */
 router.post('/', async (req, res) => {
-    const { accountHolder, primaryLocation, producerCode, type, organization } = req.body;
-    const currentUser = req.userContext.id;
+    const { accountHolder, primaryLocation, producerCode, organization } = req.body;
+    const currentUser = req.userContext?.id || 'system';
+
+    let createdAddressId = null;
+    let createdContactId = null;
 
     try {
+        
         const newAddress = new Address({ ...primaryLocation });
         await newAddress.save();
+        createdAddressId = newAddress._id;
+
 
         const newContact = new Contact({ ...accountHolder });
         await newContact.save();
+        createdContactId = newContact._id;
+
 
         const newAccount = new Account({
-            accountHolderId: newContact._id,
-            primaryLocationId: newAddress._id,
-            accountNumber: `ACT${Math.floor(100000 + Math.random() * 900000)}`,
+            accountHolder: createdContactId,
+            primaryLocation: createdAddressId,
             producerCode,
-            type,
             organization,
             createdBy: currentUser,
-            status: 'Active'
+            status: { code: 'pending', name: 'Pending' } 
         });
+
         await newAccount.save();
 
-        await newAccount.populate(['accountHolderId', 'primaryLocationId']);
+        await newAccount.populate(['accountHolder', 'primaryLocation']);
         res.status(201).json(newAccount);
+
     } catch (err) {
-        res.status(400).json({ error: "Failed to create account bundle", message: err.message });
+        if (createdAddressId) await Address.findByIdAndDelete(createdAddressId);
+        if (createdContactId) await Contact.findByIdAndDelete(createdContactId);
+        
+        res.status(400).json({ 
+            error: "Failed to create account bundle", 
+            message: err.message 
+        });
     }
 });
 
@@ -89,8 +102,8 @@ router.post('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         const account = await Account.findById(req.params.id)
-            .populate('accountHolderId')
-            .populate('primaryLocationId');
+            .populate('accountHolder')
+            .populate('primaryLocation');
         if (!account) return res.status(404).send("Account not found");
         res.json(account);
     } catch (err) {
@@ -118,27 +131,73 @@ router.get('/:id', async (req, res) => {
 router.post('/:accountId/submissions', async (req, res) => {
     try {
         const { accountId } = req.params;
-        const { lobCode } = req.body;
+        const { 
+            product,
+            effectiveDate
+        } = req.body;
 
         const account = await Account.findById(accountId);
+        await account.populate(['accountHolder', 'primaryLocation']);
         if (!account) return res.status(404).json({ message: "Account not found" });
 
+        const baseState = account.primaryLocation?.state;
+
+ 
         const newJob = new Job({
-            accountId: accountId,
+            account: accountId,
+            organization: account.organization,
+            producerCode: account.producerCode, 
+            primaryInsured: account.accountHolder,
             jobType: { code: 'submission', name: 'New Business' },
-            lobCode: lobCode || 'PA',
-            primaryInsured: account.accountHolderId,
+            jobStatus: { code: 'draft', name: 'Draft' },
+            product: product,
+            baseState: baseState,
+            preferredCoverageCurrency: { code: 'usd', name: 'USD' },
             drivers: [],
-            vehicles: []
+            vehicles: [],
+            effectiveDate: effectiveDate
         });
 
         const savedJob = await newJob.save();
-        const result = await Job.findById(savedJob._id).populate('primaryInsured');
+        const result = await Job.findById(savedJob._id).populate(['primaryInsured', 'account']);
 
         res.status(201).json(result);
     } catch (err) {
         res.status(400).json({ error: "Failed to create submission", message: err.message });
     }
 });
+
+
+/**
+ * @openapi
+ * /api/accounts/{accountId}/jobs:
+ *   get:
+ *     summary: Get all jobs for an account
+ *     tags: [Accounts]
+ *     parameters:
+ *       - in: path
+ *         name: accountId
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: List of jobs for the account
+ *       404:
+ *         description: Account not found
+ */
+router.get('/:accountId/jobs', async (req, res) => {
+    try {
+        const { accountId } = req.params;
+
+        const jobs = await Job.find({ account: accountId })
+            .populate('primaryInsured')
+            .populate('account');
+
+        res.status(200).json(jobs);
+    } catch (err) {
+        res.status(400).json({ error: "Failed to retrieve jobs", message: err.message });
+    }
+});
+
+
 
 module.exports = router;
