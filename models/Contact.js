@@ -6,8 +6,10 @@ const contactSchema = new mongoose.Schema({
     firstName: String,
     lastName: String,
     companyName: String,
-    dob: Date,
-    phone: String,
+    dateOfBirth: Date,
+    workPhone: String,
+    homePhone: String,
+    cellPhone: String,
     type: { 
         code: { type: String, required: true }, 
         name: { type: String, required: true } 
@@ -18,7 +20,7 @@ const contactSchema = new mongoose.Schema({
             name: { type: String, required: true } 
         }
     ],
-    email: { type: String, unique: true, sparse: true },
+    emailAddress: { type: String, unique: true, sparse: true },
     createdBy: String
 }, { timestamps: true });
 
