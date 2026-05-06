@@ -72,7 +72,7 @@ router.get('/', async (req, res) => {
     try {
         const jobs = await Job.find()
             .select('jobNumber jobStatus jobType createdDate')
-            .populate('account');
+            .populate(['account', 'primaryInsured', 'primaryAddress']);
         res.json(jobs);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -101,7 +101,7 @@ router.get('/:id', async (req, res) => {
         const job = await Job.findById(req.params.id)
             .populate('account')
             .populate('primaryInsured')
-            .populate('policyAddress')
+            .populate('primaryAddress')
             .populate('vehicles')
             .populate({ path: 'drivers', populate: { path: 'contactId' } })
             .populate({ path: 'lineCoverages', populate: { path: 'terms' } });

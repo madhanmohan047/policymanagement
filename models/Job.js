@@ -33,7 +33,7 @@ const jobSchema = new mongoose.Schema({
     effectiveDate: { type: Date, required: true },
     organization: { type: String, ref: 'Organization', required: true },
     producerCode: { type: String, ref: 'ProducerCode', required: true },
-    policyAddress: { type: String, ref: 'Address'},
+    primaryAddress: { type: String, ref: 'Address'},
     primaryInsured: { type: String, ref: 'Contact' },
     drivers: [{ type: String, ref: 'Driver' }],
     vehicles: [{ type: String, ref: 'Vehicle' }],
