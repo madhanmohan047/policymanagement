@@ -13,4 +13,4 @@ const termSchema = new mongoose.Schema({
     createdBy: String
 }, { timestamps: true });
 
-module.exports = mongoose.model('Term', termSchema);
+module.exports = mongoose.model('Term', termSchema, 'db_term');

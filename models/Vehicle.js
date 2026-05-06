@@ -11,4 +11,4 @@ const vehicleSchema = new mongoose.Schema({
     costNew: Number
 });
 
-module.exports = mongoose.model('Vehicle', vehicleSchema);
+module.exports = mongoose.model('Vehicle', vehicleSchema, 'db_vehicle');
