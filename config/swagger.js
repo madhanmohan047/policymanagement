@@ -15,9 +15,6 @@ const options = {
         },
       },
       schemas: {
-        // ==========================================
-        // 🛠️ ENTITY SCHEMAS (The "Actual" Objects returned by API)
-        // ==========================================
         User: {
           type: 'object',
           properties: {
@@ -79,10 +76,6 @@ const options = {
             name: { type: 'string' }
           }
         },
-
-        // ==========================================
-        // 📥 INPUT SCHEMAS (What the API receives in requestBody)
-        // ==========================================
         UserInput: {
           type: 'object',
           required: ['username', 'email'],
