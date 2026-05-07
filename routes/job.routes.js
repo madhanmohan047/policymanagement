@@ -78,7 +78,7 @@ const jobController = require('../controllers/job.controller');
  *       type: object
  *       properties:
  *         _id: { type: string, description: 'Optional: Update existing' }
- *         person: { type: string, description: 'Contact ID' }
+ *         person: { $ref: '#/components/schemas/Contact' }
  *         licenseNumber: { type: string }
  *         licenseYear: { type: integer }
  *         licenseState: { type: string, description: 'State Code' }
