@@ -1,3 +1,5 @@
+const VehicleBodyType = require('./typelist/VehicleBodyType');
+
 module.exports = {
   Account: require('./Account'),
   Address: require('./Address'),
@@ -11,6 +13,7 @@ module.exports = {
   Term: require('./Term'),
   User: require('./User'),
   Vehicle: require('./Vehicle'),
+  Policy: require('./Policy'),
   ContactType: require('./typelist/ContactType'),
   Country: require('./typelist/Country'),
   Currency: require('./typelist/Currency'),
@@ -21,4 +24,6 @@ module.exports = {
   JobType: require('./typelist/JobType'),
   JobStatus: require('./typelist/JobStatus'),
   Product: require('./typelist/Product'),
+  VehicleBodyType: require('./typelist/VehicleBodyType'),
+  PolicyStatus: require('./typelist/PolicyStatus')
 };
