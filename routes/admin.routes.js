@@ -26,12 +26,15 @@ const adminController = require('../controllers/admin.controller');
  * 
  *     ContactInput:
  *       type: object
- *       required: [firstName, lastName, email]
+ *       required: [firstName, lastName, emailAddress]
  *       properties:
  *         firstName: { type: string }
  *         lastName: { type: string }
- *         email: { type: string }
- *         phone: { type: string }
+ *         emailAddress: { type: string }
+ *         workPhone: { type: string }
+ *         homePhone: { type: string }
+ *         cellPhone: { type: string }
+ *         dateOfBirth: { type: string, format: 'date' }
  *         type:
  *           type: object
  *           properties:
@@ -75,7 +78,7 @@ const adminController = require('../controllers/admin.controller');
  *       required: [username, email]
  *       properties:
  *         username: { type: string }
- *         email: { type: string }
+ *         emailAddress: { type: string }
  *         groups: { type: array, items: { type: string } }
  *         producerCodes: { type: array, items: { type: string } }
  */

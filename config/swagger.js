@@ -23,7 +23,7 @@ const options = {
           properties: {
             _id: { type: 'string' },
             username: { type: 'string' },
-            email: { type: 'string' },
+            emailAddress: { type: 'string' },
             groups: { type: 'array', items: { type: 'string' } },
             producerCodes: { type: 'array', items: { type: 'string' } },
             createdAt: { type: 'string', format: 'date-time' },
@@ -84,7 +84,7 @@ const options = {
           required: ['username', 'email'],
           properties: {
             username: { type: 'string' },
-            email: { type: 'string' },
+            emailAddress: { type: 'string' },
             groups: { type: 'array', items: { type: 'string' } },
             producerCodes: { type: 'array', items: { type: 'string' } }
           }
