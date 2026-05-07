@@ -2,7 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router();
 
-const { AccountStatus, ContactRole, ContactType, Country, Currency, JobStatus, JobType, Product, State, UserType } = require('../models');
+const { AccountStatus, ContactRole, ContactType, Country, Currency, JobStatus, JobType, Product, State, UserType, PolicyStatus, VehicleBodyType } = require('../models');
 
 router.get('/:type', async (req, res) => {
     try {
@@ -39,6 +39,12 @@ router.get('/:type', async (req, res) => {
                 break;
             case 'UserType':
                 typelist = await UserType.find();
+                break;
+            case 'BodyType':
+                typelist = await VehicleBodyType.find();
+                break;
+            case 'PolicyStatus':
+                typelist = await PolicyStatus.find();
                 break;
             default:
                 return res.status(404).json({ message: "Type not found" });
