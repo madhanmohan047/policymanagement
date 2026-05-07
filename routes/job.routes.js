@@ -12,7 +12,7 @@ const jobController = require('../controllers/job.controller');
  *         code: { type: string, example: 'draft' }
  *         name: { type: string, example: 'Draft' }
  * 
- *     # --- THE ACTUAL JOB ENTITY (This is what was missing) ---
+ *     # --- THE ACTUAL JOB ENTITY ---
  *     Job:
  *       type: object
  *       properties:
@@ -34,15 +34,21 @@ const jobController = require('../controllers/job.controller');
  *         uwCompany: { $ref: '#/components/schemas/LookupObject' }
  *         createdAt: { type: string, format: date-time }
  * 
+ *     # --- DRIVER ENTITY ---
  *     Driver:
  *       type: object
  *       properties:
  *         _id: { type: string }
- *         contact: { type: object, properties: { firstName: { type: string }, email: { type: string } } }
+ *         person: { $ref: '#/components/schemas/Contact' }
  *         licenseNumber: { type: string }
- *         licenseState: { type: string }
+ *         licenseYear: { type: integer }
+ *         licenseState: { $ref: '#/components/schemas/LookupObject' }
  *         licenseStatus: { type: string }
+ *         numAccidents: { type: integer }
+ *         numViolations: { type: integer }
+ *         yearsOfExperience: { type: integer }
  * 
+ *     # --- VEHICLE ENTITY ---
  *     Vehicle:
  *       type: object
  *       properties:
@@ -51,28 +57,59 @@ const jobController = require('../controllers/job.controller');
  *         model: { type: string }
  *         year: { type: integer }
  *         vin: { type: string }
+ *         color: { type: string }
+ *         costNew: { type: number }
+ *         annualMileage: { type: integer }
+ *         licensePlate: { type: string }
+ *         bodyType: { $ref: '#/components/schemas/LookupObject' }
+ *         licenseState: { $ref: '#/components/schemas/LookupObject' }
+ *         garageLocation: { $ref: '#/components/schemas/Address' }
+ *         vehicleDrivers: 
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               driver: { $ref: '#/components/schemas/Driver' }
+ *               yearsOfExperience: { type: integer }
+ *               isPrimary: { type: boolean }
  * 
  *     # --- INPUT SCHEMAS ---
  *     DriverInput:
  *       type: object
  *       properties:
- *         _id: { type: string, description: 'Optional: Provide ID to update existing driver' }
- *         firstName: { type: string }
- *         lastName: { type: string }
- *         email: { type: string }
- *         phone: { type: string }
+ *         _id: { type: string, description: 'Optional: Update existing' }
+ *         person: { type: string, description: 'Contact ID' }
  *         licenseNumber: { type: string }
- *         licenseState: { type: string }
+ *         licenseYear: { type: integer }
+ *         licenseState: { type: string, description: 'State Code' }
  *         licenseStatus: { type: string }
+ *         numAccidents: { type: integer }
+ *         numViolations: { type: integer }
+ *         yearsOfExperience: { type: integer }
  * 
  *     VehicleInput:
  *       type: object
  *       properties:
- *         _id: { type: string, description: 'Optional: Provide ID to update existing vehicle' }
+ *         _id: { type: string, description: 'Optional: Update existing' }
  *         make: { type: string }
  *         model: { type: string }
  *         year: { type: integer }
  *         vin: { type: string }
+ *         color: { type: string }
+ *         costNew: { type: number }
+ *         annualMileage: { type: integer }
+ *         licensePlate: { type: string }
+ *         bodyType: { type: string, description: 'BodyType ID' }
+ *         licenseState: { type: string, description: 'State ID' }
+ *         garageLocation: { type: string, description: 'Address ID' }
+ *         vehicleDrivers: 
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               driver: { type: string, description: 'Driver ID' }
+ *               yearsOfExperience: { type: integer }
+ *               isPrimary: { type: boolean }
  * 
  *     JobPayload:
  *       type: object
@@ -95,7 +132,7 @@ const jobController = require('../controllers/job.controller');
  */
 
 // ==========================================
-// 📑 JOB CORE ROUTES
+// JOB CORE ROUTES
 // ==========================================
 
 /**
@@ -106,7 +143,7 @@ const jobController = require('../controllers/job.controller');
  *     tags: [Jobs]
  *     responses:
  *       200:
- *         description: List of jobs with basic details
+ *         description: List of jobs
  *         content:
  *           application/json:
  *             schema:
@@ -129,7 +166,7 @@ router.get('/', jobController.getAllJobs);
  *         schema: { type: string }
  *     responses:
  *       200:
- *         description: Full job data with all populated references
+ *         description: Full job data
  *         content:
  *           application/json:
  *             schema:
@@ -143,7 +180,7 @@ router.get('/:id', jobController.getJobById);
  * @openapi
  * /api/jobs/{jobId}:
  *   put:
- *     summary: Deep update Job, including Drivers and Vehicles
+ *     summary: Deep update Job
  *     tags: [Jobs]
  *     parameters:
  *       - in: path
@@ -158,13 +195,11 @@ router.get('/:id', jobController.getJobById);
  *             $ref: '#/components/schemas/JobPayload'
  *     responses:
  *       200:
- *         description: Job deep updated successfully
+ *         description: Updated successfully
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Job'
- *       400:
- *         description: Validation error or Job not found
  */
 router.put('/:jobId', jobController.updateJob);
 
@@ -182,13 +217,11 @@ router.put('/:jobId', jobController.updateJob);
  *     responses:
  *       200:
  *         description: Job deleted successfully
- *       404:
- *         description: Job not found
  */
 router.delete('/:id', jobController.deleteJob);
 
 // ==========================================
-// 🏎️ DRIVER MANAGEMENT
+// DRIVER MANAGEMENT
 // ==========================================
 
 /**
@@ -204,7 +237,7 @@ router.delete('/:id', jobController.deleteJob);
  *         schema: { type: string }
  *     responses:
  *       200:
- *         description: List of drivers with populated contact details
+ *         description: List of drivers
  *         content:
  *           application/json:
  *             schema:
@@ -218,7 +251,7 @@ router.get('/:jobId/drivers', jobController.getJobDrivers);
  * @openapi
  * /api/jobs/{jobId}/drivers:
  *   post:
- *     summary: Add or update a driver and link to job
+ *     summary: Add or update a driver
  *     tags: [Drivers]
  *     parameters:
  *       - in: path
@@ -233,7 +266,7 @@ router.get('/:jobId/drivers', jobController.getJobDrivers);
  *             $ref: '#/components/schemas/DriverInput'
  *     responses:
  *       201:
- *         description: Driver saved and linked to job
+ *         description: Driver saved
  *         content:
  *           application/json:
  *             schema:
@@ -245,7 +278,7 @@ router.post('/:jobId/drivers', jobController.addOrUpdateDriver);
  * @openapi
  * /api/jobs/{jobId}/drivers/{driverId}:
  *   delete:
- *     summary: Remove driver from job and delete driver record
+ *     summary: Remove driver
  *     tags: [Drivers]
  *     parameters:
  *       - in: path
@@ -258,12 +291,12 @@ router.post('/:jobId/drivers', jobController.addOrUpdateDriver);
  *         schema: { type: string }
  *     responses:
  *       200:
- *         description: Driver removed and deleted successfully
+ *         description: Driver removed
  */
 router.delete('/:jobId/drivers/:driverId', jobController.removeDriver);
 
 // ==========================================
-// 🚗 VEHICLE MANAGEMENT
+// VEHICLE MANAGEMENT
 // ==========================================
 
 /**
@@ -293,7 +326,7 @@ router.get('/:jobId/vehicles', jobController.getJobVehicles);
  * @openapi
  * /api/jobs/{jobId}/vehicles:
  *   post:
- *     summary: Add or update a vehicle and link to job
+ *     summary: Add or update a vehicle
  *     tags: [Vehicles]
  *     parameters:
  *       - in: path
@@ -308,7 +341,7 @@ router.get('/:jobId/vehicles', jobController.getJobVehicles);
  *             $ref: '#/components/schemas/VehicleInput'
  *     responses:
  *       201:
- *         description: Vehicle saved and linked to job
+ *         description: Vehicle saved
  *         content:
  *           application/json:
  *             schema:
@@ -320,7 +353,7 @@ router.post('/:jobId/vehicles', jobController.addOrUpdateVehicle);
  * @openapi
  * /api/jobs/{jobId}/vehicles/{vehicleId}:
  *   delete:
- *     summary: Remove vehicle from job and delete vehicle record
+ *     summary: Remove vehicle
  *     tags: [Vehicles]
  *     parameters:
  *       - in: path
@@ -333,7 +366,7 @@ router.post('/:jobId/vehicles', jobController.addOrUpdateVehicle);
  *         schema: { type: string }
  *     responses:
  *       200:
- *         description: Vehicle removed and deleted successfully
+ *         description: Vehicle removed
  */
 router.delete('/:jobId/vehicles/:vehicleId', jobController.removeVehicle);
 
