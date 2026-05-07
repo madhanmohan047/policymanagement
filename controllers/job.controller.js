@@ -49,8 +49,8 @@ exports.updateJob = async (req, res) => {
         if (drivers && Array.isArray(drivers)) {
             driverIds = await Promise.all(drivers.map(async (d) => {
                 const contact = await Contact.findOneAndUpdate(
-                    { email: d.email },
-                    { firstName: d.firstName, lastName: d.lastName, phone: d.phone },
+                    { emailAddress: d.emailAddress },
+                    { firstName: d.firstName, lastName: d.lastName, workPhone: d.workPhone, homePhone: d.homePhone, cellPhone: d.cellPhone, dateOfBirth: d.dateOfBirth },
                     { new: true, upsert: true, session }
                 );
                 const driverData = { contact: contact._id, licenseNumber: d.licenseNumber, licenseState: d.licenseState, licenseStatus: d.licenseStatus };
@@ -110,40 +110,62 @@ exports.getJobDrivers = async (req, res) => {
 };
 
 exports.addOrUpdateDriver = async (req, res) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
     try {
         const { jobId } = req.params;
-        const { driverId, firstName, lastName, email, phone, licenseNumber, licenseState, licenseStatus } = req.body;
+        const { 
+            _id: driverId, 
+            person:{ firstName, lastName,emailAddress, workPhone,homePhone, cellPhone, dateOfBirth }, 
+            licenseNumber,
+            licenseYear,
+            licenseState,
+            licenseStatus,
+            numAccidents,
+            numViolations,
+            yearsOfExperience
+        } = req.body;
+
 
         const contact = await Contact.findOneAndUpdate(
-            { email }, { firstName, lastName, phone },
-            { new: true, upsert: true, session }
+            { emailAddress }, 
+            { firstName, lastName, workPhone, homePhone, cellPhone, dateOfBirth },
+            { new: true, upsert: true }
         );
 
-        const driverData = { contact: contact._id, licenseNumber, licenseState, licenseStatus };
+        const driverData = { 
+            person: contact._id, 
+            licenseNumber,
+            licenseYear,
+            licenseState,
+            licenseStatus,
+            numAccidents,
+            numViolations,
+            yearsOfExperience 
+        };
+        
         let driver;
         if (driverId) {
-            driver = await Driver.findByIdAndUpdate(driverId, driverData, { new: true, session });
+            driver = await Driver.findByIdAndUpdate(driverId, driverData, { new: true });
         } else {
             driver = new Driver(driverData);
-            await driver.save({ session });
+            await driver.save();
         }
 
         const job = await Job.findByIdAndUpdate(
-            jobId, { $addToSet: { drivers: driver._id } }, { new: true, session }
+            jobId, 
+            { $addToSet: { drivers: driver._id } }, 
+            { new: true }
         );
 
-        if (!job) throw new Error("Job not found");
-        await session.commitTransaction();
+        if (!job) {
+            return res.status(404).json({ error: "Job not found" });
+        }
+
         res.status(201).json(driver);
     } catch (err) {
-        await session.abortTransaction();
         res.status(400).json({ error: err.message });
-    } finally {
-        session.endSession();
     }
 };
+
 
 exports.removeDriver = async (req, res) => {
     const session = await mongoose.startSession();
@@ -163,7 +185,7 @@ exports.removeDriver = async (req, res) => {
 };
 
 // ==========================================
-// 🚗 VEHICLE LOGIC
+// VEHICLE LOGIC
 // ==========================================
 
 exports.getJobVehicles = async (req, res) => {
