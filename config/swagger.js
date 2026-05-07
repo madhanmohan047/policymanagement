@@ -1,3 +1,6 @@
+const { homedir } = require("node:os");
+const { clearLine } = require("node:readline");
+
 const options = {
   definition: {
     openapi: '3.0.0',
@@ -43,8 +46,8 @@ const options = {
             _id: { type: 'string' },
             firstName: { type: 'string' },
             lastName: { type: 'string' },
-            email: { type: 'string' },
-            phone: { type: 'string' },
+            emailAddress: { type: 'string' },
+            workPhone: { type: 'string' },
             type: { $ref: '#/components/schemas/LookupObject' },
             roles: { type: 'array', items: { $ref: '#/components/schemas/LookupObject' } }
           }
@@ -109,12 +112,17 @@ const options = {
         },
         ContactInput: {
           type: 'object',
-          required: ['firstName', 'lastName', 'email'],
+          required: ['firstName', 'lastName', 'emailAddress'],
           properties: {
             firstName: { type: 'string' },
             lastName: { type: 'string' },
-            email: { type: 'string' },
-            phone: { type: 'string' }
+            emailAddress: { type: 'string' },
+            workPhone: { type: 'string' },
+            homePhone: { type: 'string' },
+            cellPhone: { type: 'string' },
+            dateOfBirth: { type: 'string', format: 'date' },
+            type: { type: 'object', properties: { code: { type: 'string' }, name: { type: 'string' } } },
+            roles: { type: 'array', items: { type: 'object', properties: { code: { type: 'string' }, name: { type: 'string' } } } } 
           }
         },
         GroupInput: {
