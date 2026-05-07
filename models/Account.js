@@ -65,7 +65,7 @@ accountSchema.pre('save', async function(next) {
         
         const statusExists = await mongoose.model('AccountStatus').findOne({ code: this.status.code });
         if (!statusExists) {
-            throw new Error(`Invalid account status: The code "${this.status.code}" is not a valid system status.`);
+            this.status = { code: 'pending', name: 'Pending' };
         }
     } catch (error) {
         throw error;
