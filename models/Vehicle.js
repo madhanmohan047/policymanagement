@@ -15,13 +15,12 @@ const vehicleSchema = new mongoose.Schema({
     annualMileage: { type: Number },
     licensePlate: { type: String },
     bodyType: { 
-        type: String, 
-        ref: 'VehicleBodyType', 
-        required: true 
+        code: { type: String, required: true }, 
+        name: { type: String, required: true } 
     },
     licenseState: { 
-        type: String, 
-        ref: 'State' 
+        code: { type: String, required: true }, 
+        name: { type: String, required: true } 
     },
     garageLocation: { 
         type: String, 

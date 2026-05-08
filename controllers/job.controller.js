@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const { Job, Contact, Driver, Vehicle } = require('../models');
 
 // ==========================================
-// 📑 JOB CORE LOGIC
+// JOB CORE LOGIC
 // ==========================================
 
 exports.getAllJobs = async (req, res) => {
@@ -198,6 +198,11 @@ exports.getJobVehicles = async (req, res) => {
     }
 };
 
+const mongoose = require('mongoose');
+const Vehicle = require('../models/Vehicle');
+const Job = require('../models/Job');
+const Address = require('../models/Address');
+
 exports.addOrUpdateVehicle = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -205,19 +210,34 @@ exports.addOrUpdateVehicle = async (req, res) => {
         const { jobId } = req.params;
         const { vehicleId, ...vehicleData } = req.body;
 
+        if (vehicleData.garageLocation && typeof vehicleData.garageLocation === 'object') {
+            const addressDetails = vehicleData.garageLocation;
+            const newAddress = await Address.create([addressDetails], { session });
+            vehicleData.garageLocation = newAddress[0]._id;
+        }
+
         let vehicle;
         if (vehicleId) {
-            vehicle = await Vehicle.findByIdAndUpdate(vehicleId, vehicleData, { new: true, session });
+            vehicle = await Vehicle.findByIdAndUpdate(
+                vehicleId, 
+                vehicleData, 
+                { new: true, session }
+            );
         } else {
             vehicle = new Vehicle(vehicleData);
             await vehicle.save({ session });
         }
 
+        if (!vehicle) throw new Error("Vehicle not found");
+
         const job = await Job.findByIdAndUpdate(
-            jobId, { $addToSet: { vehicles: vehicle._id } }, { new: true, session }
+            jobId, 
+            { $addToSet: { vehicles: vehicle._id } }, 
+            { new: true, session }
         );
 
         if (!job) throw new Error("Job not found");
+
         await session.commitTransaction();
         res.status(201).json(vehicle);
     } catch (err) {
@@ -227,6 +247,7 @@ exports.addOrUpdateVehicle = async (req, res) => {
         session.endSession();
     }
 };
+
 
 exports.removeVehicle = async (req, res) => {
     const session = await mongoose.startSession();
