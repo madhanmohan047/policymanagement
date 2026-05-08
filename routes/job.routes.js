@@ -295,10 +295,6 @@ router.post('/:jobId/drivers', jobController.addOrUpdateDriver);
  */
 router.delete('/:jobId/drivers/:driverId', jobController.removeDriver);
 
-// ==========================================
-// VEHICLE MANAGEMENT
-// ==========================================
-
 /**
  * @openapi
  * /api/jobs/{jobId}/vehicles:
