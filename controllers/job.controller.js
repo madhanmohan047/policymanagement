@@ -198,11 +198,6 @@ exports.getJobVehicles = async (req, res) => {
     }
 };
 
-const mongoose = require('mongoose');
-const Vehicle = require('../models/Vehicle');
-const Job = require('../models/Job');
-const Address = require('../models/Address');
-
 exports.addOrUpdateVehicle = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
