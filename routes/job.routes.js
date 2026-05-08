@@ -81,7 +81,7 @@ const jobController = require('../controllers/job.controller');
  *         person: { $ref: '#/components/schemas/Contact' }
  *         licenseNumber: { type: string }
  *         licenseYear: { type: integer }
- *         licenseState: { type: string, description: 'State Code' }
+ *         licenseState: { $ref: '#/components/schemas/LookupObject' }
  *         licenseStatus: { type: string }
  *         numAccidents: { type: integer }
  *         numViolations: { type: integer }
@@ -90,7 +90,7 @@ const jobController = require('../controllers/job.controller');
  *     VehicleInput:
  *       type: object
  *       properties:
- *         _id: { type: string, description: 'Optional: Update existing' }
+ *         _id: { type: string }
  *         make: { type: string }
  *         model: { type: string }
  *         year: { type: integer }
@@ -99,15 +99,15 @@ const jobController = require('../controllers/job.controller');
  *         costNew: { type: number }
  *         annualMileage: { type: integer }
  *         licensePlate: { type: string }
- *         bodyType: { type: string, description: 'BodyType ID' }
- *         licenseState: { type: string, description: 'State ID' }
- *         garageLocation: { type: string, description: 'Address ID' }
+ *         bodyType: { $ref: '#/components/schemas/LookupObject' }
+ *         licenseState: { $ref: '#/components/schemas/LookupObject' }
+ *         garageLocation: { $ref: '#/components/schemas/Address' }
  *         vehicleDrivers: 
  *           type: array
  *           items:
  *             type: object
  *             properties:
- *               driver: { type: string, description: 'Driver ID' }
+ *               driver: { $ref: '#/components/schemas/Driver' }
  *               yearsOfExperience: { type: integer }
  *               isPrimary: { type: boolean }
  * 
