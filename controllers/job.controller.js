@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { Job, Contact, Driver, Vehicle } = require('../models');
+const { Job, Contact, Driver, Vehicle, Address } = require('../models');
 
 // ==========================================
 // JOB CORE LOGIC
@@ -199,49 +199,43 @@ exports.getJobVehicles = async (req, res) => {
 };
 
 exports.addOrUpdateVehicle = async (req, res) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
     try {
         const { jobId } = req.params;
         const { vehicleId, ...vehicleData } = req.body;
 
+        // Address handling
         if (vehicleData.garageLocation && typeof vehicleData.garageLocation === 'object') {
             const addressDetails = vehicleData.garageLocation;
-            const newAddress = await Address.create([addressDetails], { session });
-            vehicleData.garageLocation = newAddress[0]._id;
+            // No session passed here
+            const newAddress = await Address.create(addressDetails); 
+            vehicleData.garageLocation = newAddress._id;
         }
 
         let vehicle;
         if (vehicleId) {
-            vehicle = await Vehicle.findByIdAndUpdate(
-                vehicleId, 
-                vehicleData, 
-                { new: true, session }
-            );
+            vehicle = await Vehicle.findByIdAndUpdate(vehicleId, vehicleData, { new: true });
         } else {
             vehicle = new Vehicle(vehicleData);
-            await vehicle.save({ session });
+            await vehicle.save();
         }
 
         if (!vehicle) throw new Error("Vehicle not found");
 
+        // Update the Job
         const job = await Job.findByIdAndUpdate(
             jobId, 
             { $addToSet: { vehicles: vehicle._id } }, 
-            { new: true, session }
+            { new: true }
         );
 
         if (!job) throw new Error("Job not found");
 
-        await session.commitTransaction();
         res.status(201).json(vehicle);
     } catch (err) {
-        await session.abortTransaction();
         res.status(400).json({ error: err.message });
-    } finally {
-        session.endSession();
     }
 };
+
 
 
 exports.removeVehicle = async (req, res) => {
