@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const policyController = require('../controllers/policy.controller');
 
-
 /**
  * @openapi
  * components:
@@ -10,50 +9,24 @@ const policyController = require('../controllers/policy.controller');
  *     Policy:
  *       type: object
  *       properties:
- *         _id:
- *           type: string
- *         policyNumber:
- *           type: string
- *         account:
- *           type: string
- *           description: Reference to Account
- *         product:
- *           type: object
- *           properties:
- *             code: { type: string }
- *             name: { type: string }
- *         baseState:
- *           type: object
- *           properties:
- *             code: { type: string }
- *             name: { type: string }
- *         policyStatus:
- *           type: object
- *           properties:
- *             code: { type: string }
- *             name: { type: string }
- *         premiumAmount:
- *           type: number
- *         totalAmount:
- *           type: number
- *         effectiveDate:
- *           type: string
- *           format: date-time
- *         expirationDate:
- *           type: string
- *           format: date-time
- *         issuedDate:
- *           type: string
- *           format: date-time
- *         drivers:
- *           type: array
- *           items: { type: string }
- *         vehicles:
- *           type: array
- *           items: { type: string }
- *         jobs:
- *           type: array
- *           items: { type: string }
+ *         _id: { type: string }
+ *         policyNumber: { type: string }
+ *         account: { $ref: '#/components/schemas/Account' }
+ *         product: { $ref: '#/components/schemas/LookupObject' }
+ *         baseState: { $ref: '#/components/schemas/LookupObject' }
+ *         policyStatus: { $ref: '#/components/schemas/LookupObject' }
+ *         premiumAmount: { type: number }
+ *         totalAmount: { type: number }
+ *         effectiveDate: { type: string, format: date-time }
+ *         expirationDate: { type: string, format: date-time }
+ *         issuedDate: { type: string, format: date-time }
+ *         drivers: { type: array, items: { $ref: '#/components/schemas/Driver' } }
+ *         vehicles: { type: array, items: { $ref: '#/components/schemas/Vehicle' } }
+ *         jobs: { type: array, items: { $ref: '#/components/schemas/Job' } }
+ *         organization: { $ref: '#/components/schemas/Organization' }
+ *         producerCode: { $ref: '#/components/schemas/ProducerCode' }
+ *         primaryAddress: { $ref: '#/components/schemas/Address' }
+ *         primaryInsured: { $ref: '#/components/schemas/Contact' }
  */
 
 /**
@@ -61,7 +34,6 @@ const policyController = require('../controllers/policy.controller');
  * /api/policies:
  *   get:
  *     summary: Retrieve a list of all policies
- *     description: Fetches all policy records from the database.
  *     tags: [Policy]
  *     responses:
  *       200:
@@ -82,15 +54,12 @@ router.get('/', policyController.getAllPolicies);
  * /api/policies/{id}:
  *   get:
  *     summary: Get a policy by its unique ID
- *     description: Retrieves detailed information of a single policy, including populated references.
  *     tags: [Policy]
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         schema:
- *           type: string
- *         description: The unique ID of the policy
+ *         schema: { type: string }
  *     responses:
  *       200:
  *         description: Policy details retrieved successfully.

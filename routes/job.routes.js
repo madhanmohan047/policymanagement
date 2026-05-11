@@ -6,35 +6,28 @@ const jobController = require('../controllers/job.controller');
  * @openapi
  * components:
  *   schemas:
- *     LookupObject:
- *       type: object
- *       properties:
- *         code: { type: string, example: 'draft' }
- *         name: { type: string, example: 'Draft' }
- * 
- *     # --- THE ACTUAL JOB ENTITY ---
  *     Job:
  *       type: object
  *       properties:
  *         _id: { type: string }
- *         jobNumber: { type: string, example: 'JOB-1001' }
+ *         jobNumber: { type: string }
  *         jobStatus: { $ref: '#/components/schemas/LookupObject' }
  *         jobType: { $ref: '#/components/schemas/LookupObject' }
- *         account: { type: object, properties: { _id: { type: string }, accountNumber: { type: string } } }
- *         organization: { type: string }
- *         producerCode: { type: string }
- *         productName: { $ref: '#/components/schemas/LookupObject' }
+ *         account: { $ref: '#/components/schemas/Account' }
+ *         organization: { $ref: '#/components/schemas/Organization' }
+ *         producerCode: { $ref: '#/components/schemas/ProducerCode' }
+ *         product: { $ref: '#/components/schemas/LookupObject' }
  *         baseState: { $ref: '#/components/schemas/LookupObject' }
  *         preferredCoverageCurrency: { $ref: '#/components/schemas/LookupObject' }
- *         policyAddress: { type: string }
- *         primaryInsured: { type: object, properties: { _id: { type: string }, firstName: { type: string }, lastName: { type: string } } }
+ *         primaryAddress: { $ref: '#/components/schemas/Address' }
+ *         primaryInsured: { $ref: '#/components/schemas/Contact' }
  *         drivers: { type: array, items: { $ref: '#/components/schemas/Driver' } }
  *         vehicles: { type: array, items: { $ref: '#/components/schemas/Vehicle' } }
+ *         lineCoverages: { type: array, items: { type: object, properties: { _id: { type: string }, terms: { type: array, items: { type: string } } } } }
  *         isUnderUWReview: { type: boolean }
  *         uwCompany: { $ref: '#/components/schemas/LookupObject' }
  *         createdAt: { type: string, format: date-time }
  * 
- *     # --- DRIVER ENTITY ---
  *     Driver:
  *       type: object
  *       properties:
@@ -48,46 +41,7 @@ const jobController = require('../controllers/job.controller');
  *         numViolations: { type: integer }
  *         yearsOfExperience: { type: integer }
  * 
- *     # --- VEHICLE ENTITY ---
  *     Vehicle:
- *       type: object
- *       properties:
- *         _id: { type: string }
- *         make: { type: string }
- *         model: { type: string }
- *         year: { type: integer }
- *         vin: { type: string }
- *         color: { type: string }
- *         costNew: { type: number }
- *         annualMileage: { type: integer }
- *         licensePlate: { type: string }
- *         bodyType: { $ref: '#/components/schemas/LookupObject' }
- *         licenseState: { $ref: '#/components/schemas/LookupObject' }
- *         garageLocation: { $ref: '#/components/schemas/Address' }
- *         vehicleDrivers: 
- *           type: array
- *           items:
- *             type: object
- *             properties:
- *               driver: { $ref: '#/components/schemas/Driver' }
- *               yearsOfExperience: { type: integer }
- *               isPrimary: { type: boolean }
- * 
- *     # --- INPUT SCHEMAS ---
- *     DriverInput:
- *       type: object
- *       properties:
- *         _id: { type: string, description: 'Optional: Update existing' }
- *         person: { $ref: '#/components/schemas/Contact' }
- *         licenseNumber: { type: string }
- *         licenseYear: { type: integer }
- *         licenseState: { $ref: '#/components/schemas/LookupObject' }
- *         licenseStatus: { type: string }
- *         numAccidents: { type: integer }
- *         numViolations: { type: integer }
- *         yearsOfExperience: { type: integer }
- * 
- *     VehicleInput:
  *       type: object
  *       properties:
  *         _id: { type: string }
@@ -120,10 +74,10 @@ const jobController = require('../controllers/job.controller');
  *         jobType: { $ref: '#/components/schemas/LookupObject' }
  *         organization: { type: string }
  *         producerCode: { type: string }
- *         productName: { $ref: '#/components/schemas/LookupObject' }
+ *         product: { $ref: '#/components/schemas/LookupObject' }
  *         baseState: { $ref: '#/components/schemas/LookupObject' }
  *         preferredCoverageCurrency: { $ref: '#/components/schemas/LookupObject' }
- *         policyAddress: { type: string }
+ *         primaryAddress: { type: string }
  *         primaryInsured: { type: string }
  *         drivers: { type: array, items: { $ref: '#/components/schemas/DriverInput' } }
  *         vehicles: { type: array, items: { $ref: '#/components/schemas/VehicleInput' } }
@@ -131,15 +85,11 @@ const jobController = require('../controllers/job.controller');
  *         uwCompany: { $ref: '#/components/schemas/LookupObject' }
  */
 
-// ==========================================
-// JOB CORE ROUTES
-// ==========================================
-
 /**
  * @openapi
  * /api/jobs:
  *   get:
- *     summary: Retrieve all jobs (Summary View)
+ *     summary: Retrieve all jobs
  *     tags: [Jobs]
  *     responses:
  *       200:
@@ -157,7 +107,7 @@ router.get('/', jobController.getAllJobs);
  * @openapi
  * /api/jobs/{id}:
  *   get:
- *     summary: Retrieve full job details (Deep View)
+ *     summary: Retrieve full job details
  *     tags: [Jobs]
  *     parameters:
  *       - in: path
@@ -180,7 +130,7 @@ router.get('/:id', jobController.getJobById);
  * @openapi
  * /api/jobs/{jobId}:
  *   put:
- *     summary: Deep update Job
+ *     summary: Update Job
  *     tags: [Jobs]
  *     parameters:
  *       - in: path
@@ -219,10 +169,6 @@ router.put('/:jobId', jobController.updateJob);
  *         description: Job deleted successfully
  */
 router.delete('/:id', jobController.deleteJob);
-
-// ==========================================
-// DRIVER MANAGEMENT
-// ==========================================
 
 /**
  * @openapi

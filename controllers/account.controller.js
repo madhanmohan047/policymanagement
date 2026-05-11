@@ -1,6 +1,4 @@
-const Account = require('../models/Account'); 
-const { Job } = require('../models');
-
+const { Job, Contact, Address, Account } = require('../models');
 
 const accountPopulate = [
     { path: 'accountHolder' },
@@ -10,9 +8,6 @@ const accountPopulate = [
     { path: 'createdBy' }
 ];
 
-/**
- * Get all accounts
- */
 exports.getAllAccounts = async (req, res) => {
     try {
         const accounts = await Account.find().populate(accountPopulate);
@@ -26,9 +21,6 @@ exports.getAllAccounts = async (req, res) => {
     }
 };
 
-/**
- * Get account by ID
- */
 exports.getAccountById = async (req, res) => {
     try {
         const account = await Account.findById(req.params.id).populate(accountPopulate);
@@ -41,51 +33,108 @@ exports.getAccountById = async (req, res) => {
     }
 };
 
-/**
- * Create a new account
- */
 exports.createAccount = async (req, res) => {
     try {
-        // Note: accountNumber is auto-generated in the pre-save hook if not provided
-        const account = new Account(req.body);
+        const { accountHolder, primaryLocation, ...accountData } = req.body;
+
+        if (!accountHolder || !primaryLocation) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Both accountHolder and primaryLocation details are required." 
+            });
+        }
+
+        const newContact = new Contact(accountHolder);
+        const savedContact = await newContact.save();
+
+        const newAddress = new Address(primaryLocation);
+        const savedAddress = await newAddress.save();
+
+        const accountPayload = {
+            ...accountData,
+            accountHolder: savedContact._id,    
+            primaryLocation: savedAddress._id, 
+        };
+
+        const account = new Account(accountPayload);
         const savedAccount = await account.save();
         
-        // Populate the newly created account before returning
-        const populatedAccount = await Account.findById(savedAccount._id).populate(accountPopulate);
+        const populatedAccount = await Account.findById(savedAccount._id)
+            .populate('accountHolder')    
+            .populate('primaryLocation'); 
         
         res.status(201).json({
             success: true,
             data: populatedAccount
         });
     } catch (err) {
-        res.status(400).json({ success: false, message: err.message });
+        console.error("Error creating account:", err);
+        res.status(400).json({ 
+            success: false, 
+            message: err.message || "An error occurred while creating the account" 
+        });
     }
 };
 
-/**
- * Update account
- */
+const Account = require('../models/Account');
+const Contact = require('../models/Contact'); 
+const Address = require('../models/Address'); 
+
 exports.updateAccount = async (req, res) => {
     try {
+        const { accountHolder, primaryLocation, ...accountData } = req.body;
+        const accountId = req.params.id;
+
+        if (accountHolder && accountHolder._id) {
+            await Contact.findByIdAndUpdate(
+                accountHolder._id, 
+                { $set: accountHolder }, 
+                { new: true, runValidators: true }
+            );
+        }
+
+        if (primaryLocation && primaryLocation._id) {
+            await Address.findByIdAndUpdate(
+                primaryLocation._id, 
+                { $set: primaryLocation }, 
+                { new: true, runValidators: true }
+            );
+        }
+
+        const updatePayload = {
+            ...accountData,
+            accountHolder: accountHolder?._id,
+            primaryLocation: primaryLocation?._id,
+        };
+
         const updatedAccount = await Account.findByIdAndUpdate(
-            req.params.id,
-            { $set: req.body },
+            accountId,
+            { $set: updatePayload },
             { new: true, runValidators: true }
-        ).populate(accountPopulate);
+        )
+        
+        .populate('accountHolder')
+        .populate('primaryLocation');
 
         if (!updatedAccount) {
             return res.status(404).json({ success: false, message: 'Account not found' });
         }
 
-        res.status(200).json({ success: true, data: updatedAccount });
+        res.status(200).json({ 
+            success: true, 
+            data: updatedAccount 
+        });
+
     } catch (err) {
-        res.status(400).json({ success: false, message: err.message });
+        console.error("Error updating account:", err);
+        res.status(400).json({ 
+            success: false, 
+            message: err.message || "An error occurred while updating the account" 
+        });
     }
 };
 
-/**
- * Delete account
- */
+
 exports.deleteAccount = async (req, res) => {
     try {
         const account = await Account.findByIdAndDelete(req.params.id);
@@ -98,15 +147,14 @@ exports.deleteAccount = async (req, res) => {
     }
 };
 
-/**
- * Get all jobs associated with a specific account
- */
 exports.getJobsByAccount = async (req, res) => {
     try {
         const { accountId } = req.params;
 
         const jobs = await Job.find({ account: accountId })
-            .populate('account organization producerCode primaryInsured')
+            .populate('account organization producerCode primaryInsured primaryAddress')
+            .populate({ path: 'drivers', populate: { path: 'person' } })
+            .populate('vehicles')
             .lean();
 
         res.status(200).json({
@@ -115,9 +163,32 @@ exports.getJobsByAccount = async (req, res) => {
             data: jobs
         });
     } catch (error) {
-        res.status(500).json({ 
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+exports.createJobForAccount = async (req, res) => {
+    try {
+        const { accountId } = req.params;
+        const jobData = req.body;
+
+        jobData.account = accountId;
+
+        const job = new Job(jobData);
+        const savedJob = await job.save();
+
+        const populatedJob = await Job.findById(savedJob._id)
+            .populate('account organization producerCode primaryInsured primaryAddress');
+
+        res.status(201).json({
+            success: true,
+            data: populatedJob
+        });
+    } catch (err) {
+        res.status(400).json({ 
             success: false, 
-            message: error.message 
+            message: err.message 
         });
     }
 };
+

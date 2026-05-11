@@ -12,7 +12,7 @@ const accountController = require('../controllers/account.controller');
  *       properties:
  *         accountNumber: 
  *           type: string 
- *           description: Optional. If not provided, it is auto-generated as A + 9 digits.
+ *           description: Optional. Auto-generated if not provided.
  *         accountHolder: 
  *           type: string 
  *           description: Reference ID of the Contact
@@ -69,6 +69,7 @@ const accountController = require('../controllers/account.controller');
  *               type: object
  *               properties:
  *                 success: { type: boolean }
+ *                 count: { type: integer }
  *                 data: { type: array, items: { $ref: '#/components/schemas/Account' } }
  *   post:
  *     summary: Create a new account
@@ -83,7 +84,7 @@ const accountController = require('../controllers/account.controller');
  *       201:
  *         description: Account created successfully
  *       400:
- *         description: Validation error or invalid status code
+ *         description: Validation error
  */
 router.get('/', accountController.getAllAccounts);
 router.post('/', accountController.createAccount);
@@ -102,6 +103,13 @@ router.post('/', accountController.createAccount);
  *     responses:
  *       200:
  *         description: Account details retrieved
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 data: { $ref: '#/components/schemas/Account' }
  *       404:
  *         description: Account not found
  *   put:
@@ -144,14 +152,12 @@ router.delete('/:id', accountController.deleteAccount);
  * /api/accounts/{accountId}/jobs:
  *   get:
  *     summary: Get all jobs associated with a specific account
- *     description: Returns a list of all jobs (submissions, renewals, etc.) linked to the provided account ID.
  *     tags: [Accounts]
  *     parameters:
  *       - in: path
  *         name: accountId
  *         required: true
  *         schema: { type: string }
- *         description: The unique ID of the account
  *     responses:
  *       200:
  *         description: List of jobs retrieved successfully
@@ -165,11 +171,40 @@ router.delete('/:id', accountController.deleteAccount);
  *                 data: 
  *                   type: array
  *                   items: { $ref: '#/components/schemas/Job' }
- *       404:
- *         description: Account not found
- *       500:
- *         description: Server error
  */
 router.get('/:accountId/jobs', accountController.getJobsByAccount);
+
+/**
+ * @openapi
+ * /api/accounts/{accountId}/job:
+ *   post:
+ *     summary: Create a new job for a specific account
+ *     tags: [Accounts]
+ *     parameters:
+ *       - in: path
+ *         name: accountId
+ *         required: true
+ *         schema: { type: string }
+ *         description: The ID of the account this job belongs to
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/JobPayload'
+ *     responses:
+ *       201:
+ *         description: Job created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 data: { $ref: '#/components/schemas/Job' }
+ *       400:
+ *         description: Validation error (e.g., invalid state or product code)
+ */
+router.post('/:accountId/job', accountController.createJobForAccount);
 
 module.exports = router;
