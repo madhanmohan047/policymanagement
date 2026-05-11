@@ -76,10 +76,6 @@ exports.createAccount = async (req, res) => {
     }
 };
 
-const Account = require('../models/Account');
-const Contact = require('../models/Contact'); 
-const Address = require('../models/Address'); 
-
 exports.updateAccount = async (req, res) => {
     try {
         const { accountHolder, primaryLocation, ...accountData } = req.body;
