@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { 
     AccountStatus, ContactRole, ContactType, Country, Currency, 
-    JobStatus, JobType, Product, State, UserType, PolicyStatus, VehicleBodyType 
+    JobStatus, JobType, Product, State, UserType, PolicyStatus, BodyType 
 } = require('../models');
 
 router.get('/:type', async (req, res) => {
@@ -22,7 +22,7 @@ router.get('/:type', async (req, res) => {
             'State': State,
             'UserType': UserType,
             'PolicyStatus': PolicyStatus,
-            'BodyType': VehicleBodyType
+            'BodyType': BodyType
         };
 
         model = typeMap[type];
