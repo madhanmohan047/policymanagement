@@ -1,5 +1,5 @@
-const { homedir } = require("node:os");
-const { clearLine } = require("node:readline");
+require('dotenv').config();
+const PORT = process.env.PORT || 8180;
 
 const options = {
   definition: {
@@ -9,7 +9,7 @@ const options = {
       version: '1.0.0',
       description: 'API for managing Accounts, Jobs, Drivers, and Vehicles',
     },
-    servers: [{ url: 'http://localhost:8180' }],
+    servers: [{ url: `http://localhost:${PORT}` }],
     components: {
       securitySchemes: {
         basicAuth: {
@@ -18,26 +18,22 @@ const options = {
         },
       },
       schemas: {
-        User: {
+        LookupObject: {
           type: 'object',
           properties: {
-            _id: { type: 'string' },
-            username: { type: 'string' },
-            emailAddress: { type: 'string' },
-            groups: { type: 'array', items: { type: 'string' } },
-            producerCodes: { type: 'array', items: { type: 'string' } },
-            createdAt: { type: 'string', format: 'date-time' },
-            updatedAt: { type: 'string', format: 'date-time' }
+            code: { type: 'string' },
+            name: { type: 'string' }
           }
         },
-        Organization: {
+        Address: {
           type: 'object',
           properties: {
             _id: { type: 'string' },
-            name: { type: 'string' },
-            taxId: { type: 'string' },
-            address: { $ref: '#/components/schemas/Address' },
-            contact: { $ref: '#/components/schemas/Contact' }
+            addressLine1: { type: 'string' },
+            city: { type: 'string' },
+            postalCode: { type: 'string' },
+            state: { $ref: '#/components/schemas/LookupObject' },
+            country: { $ref: '#/components/schemas/LookupObject' }
           }
         },
         Contact: {
@@ -52,53 +48,30 @@ const options = {
             roles: { type: 'array', items: { $ref: '#/components/schemas/LookupObject' } }
           }
         },
-        Address: {
+        Organization: {
           type: 'object',
           properties: {
             _id: { type: 'string' },
-            addressLine1: { type: 'string' },
-            city: { type: 'string' },
-            postalCode: { type: 'string' },
-            state: { $ref: '#/components/schemas/LookupObject' },
-            country: { $ref: '#/components/schemas/LookupObject' }
-          }
-        },
-        ProducerCode: {
-          type: 'object',
-          properties: {
-            _id: { type: 'string' },
-            code: { type: 'string' },
             name: { type: 'string' },
-            organization: { $ref: '#/components/schemas/Organization' }
+            taxId: { type: 'string' },
+            address: { $ref: '#/components/schemas/Address' },
+            contact: { $ref: '#/components/schemas/Contact' }
           }
         },
-        LookupObject: {
+        User: {
           type: 'object',
           properties: {
-            code: { type: 'string' },
-            name: { type: 'string' }
-          }
-        },
-        UserInput: {
-          type: 'object',
-          required: ['username', 'email'],
-          properties: {
+            _id: { type: 'string' },
             username: { type: 'string' },
             emailAddress: { type: 'string' },
             groups: { type: 'array', items: { type: 'string' } },
-            producerCodes: { type: 'array', items: { type: 'string' } }
+            producerCodes: { type: 'array', items: { type: 'string' } },
+            createdAt: { type: 'string', format: 'date-time' },
+            updatedAt: { type: 'string', format: 'date-time' }
           }
         },
-        OrganizationInput: {
-          type: 'object',
-          required: ['name', 'address', 'contact'],
-          properties: {
-            name: { type: 'string' },
-            taxId: { type: 'string' },
-            address: { $ref: '#/components/schemas/AddressInput' },
-            contact: { $ref: '#/components/schemas/ContactInput' }
-          }
-        },
+
+        // --- INPUT SCHEMAS (Used for Requests) ---
         AddressInput: {
           type: 'object',
           required: ['addressLine1', 'city', 'postalCode', 'state', 'country'],
@@ -106,8 +79,8 @@ const options = {
             addressLine1: { type: 'string' },
             city: { type: 'string' },
             postalCode: { type: 'string' },
-            state: { type: 'object', properties: { code: { type: 'string' }, name: { type: 'string' } } },
-            country: { type: 'object', properties: { code: { type: 'string' }, name: { type: 'string' } } }
+            state: { $ref: '#/components/schemas/LookupObject' },
+            country: { $ref: '#/components/schemas/LookupObject' }
           }
         },
         ContactInput: {
@@ -121,8 +94,76 @@ const options = {
             homePhone: { type: 'string' },
             cellPhone: { type: 'string' },
             dateOfBirth: { type: 'string', format: 'date' },
-            type: { type: 'object', properties: { code: { type: 'string' }, name: { type: 'string' } } },
-            roles: { type: 'array', items: { type: 'object', properties: { code: { type: 'string' }, name: { type: 'string' } } } } 
+            type: { $ref: '#/components/schemas/LookupObject' },
+            roles: { type: 'array', items: { $ref: '#/components/schemas/LookupObject' } } 
+          }
+        },
+        DriverInput: {
+          type: 'object',
+          required: ['person', 'licenseNumber', 'licenseYear', 'licenseState'],
+          properties: {
+            person: { type: 'string', description: 'Contact ID' },
+            licenseNumber: { type: 'string' },
+            licenseYear: { type: 'integer' },
+            licenseState: { type: 'string', description: 'State ID' },
+            licenseStatus: { type: 'string' },
+            numAccidents: { type: 'integer' },
+            numViolations: { type: 'integer' },
+            yearsOfExperience: { type: 'integer' }
+          }
+        },
+        VehicleInput: {
+          type: 'object',
+          required: ['make', 'model', 'year', 'vin', 'bodyType', 'licenseState'],
+          properties: {
+            _id: { type: 'string', description: 'Optional: Update existing' },
+            make: { type: 'string' },
+            model: { type: 'string' },
+            year: { type: 'integer' },
+            vin: { type: 'string' },
+            color: { type: 'string' },
+            costNew: { type: 'number' },
+            annualMileage: { type: 'integer' },
+            licensePlate: { type: 'string' },
+            bodyType: { $ref: '#/components/schemas/LookupObject' },
+            licenseState: { $ref: '#/components/schemas/LookupObject' },
+            garageLocation: { 
+              oneOf: [
+                { $ref: '#/components/schemas/AddressInput' },
+                { type: 'string', description: 'Address ID' }
+              ]
+            },
+            vehicleDrivers: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  driver: { type: 'string', description: 'Driver ID' },
+                  yearsOfExperience: { type: 'integer' },
+                  isPrimary: { type: 'boolean' }
+                }
+              }
+            }
+          }
+        },
+        OrganizationInput: {
+          type: 'object',
+          required: ['name', 'address', 'contact'],
+          properties: {
+            name: { type: 'string' },
+            taxId: { type: 'string' },
+            address: { $ref: '#/components/schemas/AddressInput' },
+            contact: { $ref: '#/components/schemas/ContactInput' }
+          }
+        },
+        UserInput: {
+          type: 'object',
+          required: ['username', 'emailAddress'],
+          properties: {
+            username: { type: 'string' },
+            emailAddress: { type: 'string' },
+            groups: { type: 'array', items: { type: 'string' } },
+            producerCodes: { type: 'array', items: { type: 'string' } }
           }
         },
         GroupInput: {
@@ -136,11 +177,11 @@ const options = {
         },
         ProducerCodeInput: {
           type: 'object',
-          required: ['code', 'name', 'organizationId'],
+          required: ['code', 'name', 'organization'],
           properties: {
             code: { type: 'string' },
             name: { type: 'string' },
-            organizationId: { type: 'string' }
+            organization: { type: 'string', description: 'Organization ID' }
           }
         }
       }
