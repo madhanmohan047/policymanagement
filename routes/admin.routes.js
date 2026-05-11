@@ -6,86 +6,33 @@ const adminController = require('../controllers/admin.controller');
  * @openapi
  * components:
  *   schemas:
- *     AddressInput:
+ *     Organization:
  *       type: object
- *       required: [addressLine1, city, postalCode, state, country]
  *       properties:
- *         addressLine1: { type: string }
- *         city: { type: string }
- *         postalCode: { type: string }
- *         state:
- *           type: object
- *           properties:
- *             code: { type: string, example: 'NY' }
- *             name: { type: string, example: 'New York' }
- *         country:
- *           type: object
- *           properties:
- *             code: { type: string, example: 'US' }
- *             name: { type: string, example: 'United States' }
- * 
- *     ContactInput:
- *       type: object
- *       required: [firstName, lastName, emailAddress]
- *       properties:
- *         firstName: { type: string }
- *         lastName: { type: string }
- *         emailAddress: { type: string }
- *         workPhone: { type: string }
- *         homePhone: { type: string }
- *         cellPhone: { type: string }
- *         dateOfBirth: { type: string, format: 'date' }
- *         type:
- *           type: object
- *           properties:
- *             code: { type: string }
- *             name: { type: string }
- *         roles:
- *           type: array
- *           items:
- *             type: object
- *             properties:
- *               code: { type: string }
- *               name: { type: string }
- * 
- *     OrganizationInput:
- *       type: object
- *       required: [name, address, contact]
- *       properties:
+ *         _id: { type: string }
  *         name: { type: string }
  *         taxId: { type: string }
- *         address: { $ref: '#/components/schemas/AddressInput' }
- *         contact: { $ref: '#/components/schemas/ContactInput' }
+ *         address: { $ref: '#/components/schemas/Address' }
+ *         contact: { $ref: '#/components/schemas/Contact' }
+ *         groups: { type: array, items: { type: object, properties: { name: { type: string } } } }
+ *         producerCodes: { type: array, items: { type: object, properties: { code: { type: string }, name: { type: string } } } }
  * 
- *     GroupInput:
+ *     Group:
  *       type: object
- *       required: [name]
  *       properties:
+ *         _id: { type: string }
  *         name: { type: string }
- *         organizations: { type: array, items: { type: string }, description: 'Array of Organization IDs' }
- *         producerCodes: { type: array, items: { type: string }, description: 'Array of ProducerCode IDs' }
+ *         organizations: { type: array, items: { $ref: '#/components/schemas/Organization' } }
+ *         producerCodes: { type: array, items: { $ref: '#/components/schemas/ProducerCode' } }
  * 
- *     ProducerCodeInput:
+ *     ProducerCode:
  *       type: object
- *       required: [code, name, organizationId]
  *       properties:
+ *         _id: { type: string }
  *         code: { type: string }
  *         name: { type: string }
- *         organizationId: { type: string }
- * 
- *     UserInput:
- *       type: object
- *       required: [username, email]
- *       properties:
- *         username: { type: string }
- *         emailAddress: { type: string }
- *         groups: { type: array, items: { type: string } }
- *         producerCodes: { type: array, items: { type: string } }
+ *         organization: { $ref: '#/components/schemas/Organization' }
  */
-
-// ==========================================
-// 🏢 ORGANIZATION ROUTES
-// ==========================================
 
 /**
  * @openapi
@@ -96,6 +43,11 @@ const adminController = require('../controllers/admin.controller');
  *     responses:
  *       200:
  *         description: List of organizations
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: { $ref: '#/components/schemas/Organization' }
  *   post:
  *     summary: Create an organization
  *     tags: [Organizations]
@@ -125,6 +77,9 @@ router.post('/organizations', adminController.createOrganization);
  *     responses:
  *       200:
  *         description: Success
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Organization' }
  *   put:
  *     summary: Update organization
  *     tags: [Organizations]
@@ -157,10 +112,6 @@ router.get('/organizations/:id', adminController.getOrganizationById);
 router.put('/organizations/:id', adminController.updateOrganization);
 router.delete('/organizations/:id', adminController.deleteOrganization);
 
-// ==========================================
-// 👥 GROUP ROUTES
-// ==========================================
-
 /**
  * @openapi
  * /api/admin/groups:
@@ -170,6 +121,11 @@ router.delete('/organizations/:id', adminController.deleteOrganization);
  *     responses:
  *       200:
  *         description: List of groups
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: { $ref: '#/components/schemas/Group' }
  *   post:
  *     summary: Create a group
  *     tags: [Groups]
@@ -199,6 +155,9 @@ router.post('/groups', adminController.createGroup);
  *     responses:
  *       200:
  *         description: Success
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Group' }
  *   put:
  *     summary: Update group
  *     tags: [Groups]
@@ -231,10 +190,6 @@ router.get('/groups/:id', adminController.getGroupById);
 router.put('/groups/:id', adminController.updateGroup);
 router.delete('/groups/:id', adminController.deleteGroup);
 
-// ==========================================
-// 🏷️ PRODUCER CODE ROUTES
-// ==========================================
-
 /**
  * @openapi
  * /api/admin/producercodes:
@@ -244,6 +199,11 @@ router.delete('/groups/:id', adminController.deleteGroup);
  *     responses:
  *       200:
  *         description: List of producer codes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: { $ref: '#/components/schemas/ProducerCode' }
  *   post:
  *     summary: Create producer code
  *     tags: [ProducerCodes]
@@ -293,10 +253,6 @@ router.post('/producercodes', adminController.createProducerCode);
 router.put('/producercodes/:id', adminController.updateProducerCode);
 router.delete('/producercodes/:id', adminController.deleteProducerCode);
 
-// ==========================================
-// 👤 USER ROUTES
-// ==========================================
-
 /**
  * @openapi
  * /api/admin/users:
@@ -306,6 +262,11 @@ router.delete('/producercodes/:id', adminController.deleteProducerCode);
  *     responses:
  *       200:
  *         description: List of users
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: { $ref: '#/components/schemas/User' }
  *   post:
  *     summary: Create user
  *     tags: [Users]

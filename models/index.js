@@ -1,5 +1,3 @@
-const VehicleBodyType = require('./typelist/VehicleBodyType');
-
 module.exports = {
   Account: require('./Account'),
   Address: require('./Address'),
@@ -24,6 +22,6 @@ module.exports = {
   JobType: require('./typelist/JobType'),
   JobStatus: require('./typelist/JobStatus'),
   Product: require('./typelist/Product'),
-  VehicleBodyType: require('./typelist/VehicleBodyType'),
+  BodyType: require('./typelist/BodyType'),
   PolicyStatus: require('./typelist/PolicyStatus')
 };
