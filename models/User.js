@@ -11,7 +11,8 @@ const userSchema = new mongoose.Schema({
     status: { type: String, default: 'Pending', enum: ['Pending', 'Active'] },
     organization: { type: String, ref: 'Organization' },
     producerCodes: [{ type: String, ref: 'ProducerCode' }],
-    createdBy: { type: String, ref: 'User' }
+    createdBy: { type: String, ref: 'User' },
+    auth0Sub: { type: String, index: true }
 }, { timestamps: true, collection: 'db_user' });
 
 module.exports = mongoose.model('User', userSchema);
