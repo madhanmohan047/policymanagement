@@ -297,3 +297,14 @@ exports.deleteUser = async (req, res) => {
         res.status(500).json({ success: false, message: err.message });
     }
 };
+
+exports.getUser = async (req, res) => {
+    try {
+        const userInfo = req.user
+        const user = await User.findById(userInfo._id).populate('organization producerCodes');
+        if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+        res.status(200).json({ success: true, data: user });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+}

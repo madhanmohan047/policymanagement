@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema({
     type: { type: String, required: true, ref: 'UserType' },
     status: { type: String, default: 'Pending', enum: ['Pending', 'Active'] },
     organization: { type: String, ref: 'Organization' },
-    producerCode: { type: String, ref: 'ProducerCode' },
+    producerCodes: [{ type: String, ref: 'ProducerCode' }],
     createdBy: { type: String, ref: 'User' }
 }, { timestamps: true, collection: 'db_user' });
 
