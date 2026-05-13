@@ -13,6 +13,7 @@ module.exports = {
   Vehicle: require('./Vehicle'),
   Policy: require('./Policy'),
   RecentlyViewed: require('./RecentlyViewed'),
+  Activity: require('./Activity'),
   ContactType: require('./typelist/ContactType'),
   Country: require('./typelist/Country'),
   Currency: require('./typelist/Currency'),

@@ -1,6 +1,4 @@
-const { emit } = require('node:cluster');
-const { Job, Contact, Address, Account, RecentlyViewed, User } = require('../models');
-const axios = require('axios');
+const { Job, Contact, Address, Account, RecentlyViewed } = require('../models');
 
 const accountPopulate = [
     { path: 'accountHolder' },
@@ -192,25 +190,8 @@ exports.createJobForAccount = async (req, res) => {
 
 exports.getRecentlyViewedAccounts = async (req, res) => {
     try {
-       const authHeader = req.headers.authorization;
-        if (!authHeader) {
-            return res.status(401).json({ success: false, message: 'Missing Authorization Header' });
-        }
+        const user = req.user;
 
-        const token = authHeader.split(' ')[1]; 
-        const userInfoURL = process.env.AUTH0_USERINFO_URL; 
-        const userInfoResponse = await axios.get(userInfoURL, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
-
-
-        const { email, nickname } = userInfoResponse.data;
-        console.log(`Authenticated User: ${nickname} (${email})`);
-
-        const user = await User.findOne({ emailAddress: email });
-
-        console.log(user)
-        
         if (user) {
             const recentlyViewed = await RecentlyViewed.findOne({ user: user._id.toString() })
                 .populate({
@@ -222,12 +203,9 @@ exports.getRecentlyViewedAccounts = async (req, res) => {
                     model: 'Policy'          
                 });
 
-            
-            
-
             return res.status(200).json({
                 success: true,
-                data: recentlyViewed.accounts
+                data: {accounts: recentlyViewed.accounts.map(p => p.account) }
             });
         } else {
             return res.status(404).json({ success: false, message: 'User not found' });

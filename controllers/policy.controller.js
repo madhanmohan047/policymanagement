@@ -45,24 +45,7 @@ exports.getPolicyByID = async (req, res) => {
 
 exports.getRecentlyViewedPolicies = async (req, res) => {
     try {
-       const authHeader = req.headers.authorization;
-        if (!authHeader) {
-            return res.status(401).json({ success: false, message: 'Missing Authorization Header' });
-        }
-
-        const token = authHeader.split(' ')[1]; 
-        const userInfoURL = process.env.AUTH0_USERINFO_URL; 
-        const userInfoResponse = await axios.get(userInfoURL, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
-
-
-        const { email, nickname } = userInfoResponse.data;
-        console.log(`Authenticated User: ${nickname} (${email})`);
-
-        const user = await User.findOne({ emailAddress: email });
-
-        console.log(user)
+        const user = req.user;
         
         if (user) {
             const recentlyViewed = await RecentlyViewed.findOne({ user: user._id.toString() })
@@ -75,12 +58,9 @@ exports.getRecentlyViewedPolicies = async (req, res) => {
                     model: 'Policy'          
                 });
 
-            
-            
-
             return res.status(200).json({
                 success: true,
-                data: recentlyViewed.policies
+                data: { policies: recentlyViewed.policies.map(p => p.policy) }
             });
         } else {
             return res.status(404).json({ success: false, message: 'User not found' });
