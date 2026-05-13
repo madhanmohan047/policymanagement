@@ -1,13 +1,17 @@
 const Activity = require('../models/Activity');
-const User = require('../models/User');
 
 exports.createActivity = async (req, res) => {
     try {
-        const { accountId, assignedUserId, title, description } = req.body;
+        const { accountId, assignedUserId, title, description, targetDate } = req.body;
+
+        const user = req.user
 
         const newActivity = new Activity({
             account: accountId,
             assignedUser: assignedUserId,
+            createdBy: user._id,
+            createdAt: new Date(),
+            targetDate: targetDate,
             title,
             description
         });

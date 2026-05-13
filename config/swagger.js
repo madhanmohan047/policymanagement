@@ -14,7 +14,12 @@ const options = {
       securitySchemes: {
         basicAuth: {
           type: 'http',
-          scheme: 'basic',
+          scheme: 'basic'
+        },
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT'
         },
       },
       schemas: {
@@ -70,8 +75,31 @@ const options = {
             updatedAt: { type: 'string', format: 'date-time' }
           }
         },
-
-        // --- INPUT SCHEMAS (Used for Requests) ---
+        Activity: {
+          type: 'object',
+          properties: {
+            _id: { type: 'string', example: 'act:12345' },
+            account: { type: 'string', example: 'pc:8f98e8e7' },
+            assignedUser: { type: 'string', example: 'pc:user123' },
+            title: { type: 'string' },
+            description: { type: 'string' },
+            status: { type: 'string', enum: ['Open', 'In Progress', 'Closed'] },
+            closedBy: { type: 'string' },
+            closedAt: { type: 'string', format: 'date-time' },
+            createdAt: { type: 'string', format: 'date-time' },
+            updatedAt: { type: 'string', format: 'date-time' }
+          }
+        },
+        ActivityInput: {
+          type: 'object',
+          required: ['accountId', 'assignedUserId', 'title'],
+          properties: {
+            accountId: { type: 'string', example: 'pc:8f98e8e7' },
+            assignedUserId: { type: 'string', example: 'pc:user123' },
+            title: { type: 'string', example: 'Client Follow-up' },
+            description: { type: 'string', example: 'Discuss policy renewal terms' }
+          }
+        },
         AddressInput: {
           type: 'object',
           required: ['addressLine1', 'city', 'postalCode', 'state', 'country'],
