@@ -301,19 +301,27 @@ router.post('/users', adminController.createUser);
  *     responses:
  *       200:
  *         description: Updated
- *   delete:
- *     summary: Delete user
- *     tags: [Users]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema: { type: string }
- *     responses:
- *       200:
- *         description: Deleted
  */
 router.put('/users/:id', adminController.updateUser);
 router.delete('/users/:id', adminController.deleteUser);
+
+/**
+ * @openapi
+ * /api/admin/user:
+ *   get:
+ *     summary: Get user
+ *     tags: [User]
+ *     responses:
+ *       200:
+ *         description: Current user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 data: { $ref: '#/components/schemas/User' }
+ */
+router.get('/user', adminController.getUser);
 
 module.exports = router;
