@@ -51,6 +51,26 @@ router.get('/', policyController.getAllPolicies);
 
 /**
  * @openapi
+ * /api/policies/recently-viewed:
+ *   get:
+ *     summary: Retrieve a list of all recently viewed policies
+ *     tags: [Policy]
+ *     responses:
+ *       200:
+ *         description: A list of recently viewed policies.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Policy'
+ *       500:
+ *         description: Server error.
+ */
+router.get('/recently-viewed', policyController.getRecentlyViewedPolicies);
+
+/**
+ * @openapi
  * /api/policies/{id}:
  *   get:
  *     summary: Get a policy by its unique ID
