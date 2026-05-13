@@ -1,37 +1,63 @@
-const { Job, Contact, Address, Account, RecentlyViewed } = require('../models');
+const { Job, Contact, Address, Account, RecentlyViewed, Policy } = require('../models');
 
-const accountPopulate = [
-    { path: 'accountHolder' },
-    { path: 'primaryLocation' },
-    { path: 'organization' },
-    { path: 'producerCode' },
-    { path: 'createdBy' }
-];
+const accountPopulate = ['accountHolder', 'primaryLocation', 'organization', 'producerCode', 'createdBy'].map(field => ({
+    path: field,
+    select: '-__v'
+}));
 
 exports.getAllAccounts = async (req, res) => {
     try {
-        const accounts = await Account.find().populate(accountPopulate);
+        const { include } = req.query;
+        const includeList = include ? include.split(',') : [];
+
+        const accounts = await Account.find().select('-__v').populate(accountPopulate);
+
+        const accountsData = await Promise.all(accounts.map(async (acc) => {
+            const accountData = acc.toObject();
+            delete accountData.id;
+
+            if (includeList.includes('policies')) {
+                const policies = await Policy.find({ account: acc._id }).select('-__v');
+                accountData._related = { policies };
+            }
+            return accountData;
+        }));
+
         res.status(200).json({
             success: true,
-            count: accounts.length,
-            data: accounts
+            count: accountsData.length,
+            data: accountsData 
         });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }
 };
 
+
 exports.getAccountById = async (req, res) => {
     try {
-        const account = await Account.findById(req.params.id).populate(accountPopulate);
+        const { include } = req.query;
+        const includeList = include ? include.split(',') : [];
+
+        const account = await Account.findById(req.params.id).select('-__v') .populate(accountPopulate);
+        const accountData = account.toObject();
+        delete accountData.id
+
         if (!account) {
             return res.status(404).json({ success: false, message: 'Account not found' });
         }
-        res.status(200).json({ success: true, data: account });
+
+        if (includeList.includes('policies')) {
+            const policies = await Policy.find({ account: account._id }).select('-__v') ;
+            accountData._related = { policies }
+        }
+
+        res.status(200).json({ success: true, data: accountData });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }
 };
+
 
 exports.createAccount = async (req, res) => {
     try {
