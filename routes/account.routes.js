@@ -91,6 +91,26 @@ router.post('/', accountController.createAccount);
 
 /**
  * @openapi
+ * /api/accounts/recently-viewed:
+ *   get:
+ *     summary: Get recently viewed accounts
+ *     tags: [Accounts]
+ *     responses:
+ *       200:
+ *         description: A list of recently viewed accounts
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 count: { type: integer }
+ *                 data: { type: array, items: { $ref: '#/components/schemas/Account' } }
+ */
+router.get('/recently-viewed', accountController.getRecentlyViewedAccounts);
+
+/**
+ * @openapi
  * /api/accounts/{id}:
  *   get:
  *     summary: Get account by ID
@@ -206,5 +226,6 @@ router.get('/:accountId/jobs', accountController.getJobsByAccount);
  *         description: Validation error (e.g., invalid state or product code)
  */
 router.post('/:accountId/job', accountController.createJobForAccount);
+
 
 module.exports = router;
