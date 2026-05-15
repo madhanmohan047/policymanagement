@@ -18,6 +18,42 @@ const {
   AffectedAreas,
 } = require("../models");
 
+
+/**
+ * @swagger
+ * /api/typelists/{type}:
+ *   get:
+ *     summary: Get a list of types/lookups
+ *     tags: [Lookup]
+ *     parameters:
+ *       - in: path
+ *         name: type
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [AccountStatus, ContactRole, ContactType, Country, Currency, JobStatus, JobType, Product, State, UserType, PolicyStatus, BodyType, LossCause, ClaimStatus, AffectedAreas]
+ *         description: The name of the type model to retrieve.
+ *     responses:
+ *       200:
+ *         description: Success
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   code:
+ *                     type: string
+ *                   name:
+ *                     type: string
+ *                   priority:
+ *                     type: integer
+ *       404:
+ *         description: Type not found
+ *       500:
+ *         description: Server error
+ */
 router.get("/:type", async (req, res) => {
   try {
     const { type } = req.params;
