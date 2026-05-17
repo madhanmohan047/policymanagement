@@ -16,8 +16,8 @@ const {
   LossCause,
   ClaimStatus,
   AffectedAreas,
+  ProgramPlan,
 } = require("../models");
-
 
 /**
  * @swagger
@@ -31,7 +31,7 @@ const {
  *         required: true
  *         schema:
  *           type: string
- *           enum: [AccountStatus, ContactRole, ContactType, Country, Currency, JobStatus, JobType, Product, State, UserType, PolicyStatus, BodyType, LossCause, ClaimStatus, AffectedAreas]
+ *           enum: [AccountStatus, ContactRole, ContactType, Country, Currency, JobStatus, JobType, Product, State, UserType, PolicyStatus, BodyType, LossCause, ClaimStatus, AffectedAreas, ProgramPlan]
  *         description: The name of the type model to retrieve.
  *     responses:
  *       200:
@@ -75,6 +75,7 @@ router.get("/:type", async (req, res) => {
       LossCause: LossCause,
       ClaimStatus: ClaimStatus,
       AffectedAreas: AffectedAreas,
+      ProgramPlan: ProgramPlan,
     };
 
     model = typeMap[type];

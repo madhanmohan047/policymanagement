@@ -29,4 +29,5 @@ module.exports = {
   LossCause: require("./typelist/LossCause"),
   ClaimStatus: require("./typelist/ClaimStatus"),
   AffectedAreas: require("./typelist/AffectedAreas"),
+  ProgramPlan: require("./typelist/ProgramPlan"),
 };
