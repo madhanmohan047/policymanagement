@@ -3,54 +3,111 @@ const { generateId } = require("./Shared");
 
 const claimSchema = new mongoose.Schema(
   {
-    _id: { type: String, default: () => generateId() },
-    account: { type: String, ref: "Account", required: true },
+    _id: {
+      type: String,
+      default: () => generateId(),
+    },
+
+    account: {
+      type: String,
+      ref: "Account",
+    },
+
     product: {
-      code: { type: String, required: true },
-      name: { type: String, required: true },
+      code: { type: String },
+      name: { type: String },
     },
-    policy: { type: String, ref: "Policy", required: true },
-    lossDate: { type: Date },
+
+    policy: {
+      type: String,
+      ref: "Policy",
+    },
+
+    lossDate: {
+      type: Date,
+    },
+
     lossCause: {
-      code: { type: String, required: true },
-      name: { type: String, required: true },
+      code: { type: String },
+      name: { type: String },
     },
-    vehicleInvolved: { type: String, ref: "Vehicle", required: true },
-    lossLocation: { type: String, ref: "Address", required: true },
-    isInjured: { type: Boolean, default: false },
-    isReported: { type: Boolean, default: false },
-    lossDescription: { type: String, required: true },
-    partiesInvolved: [{ type: String, ref: "Contact", required: true }],
+
+    vehicleInvolved: {
+      type: String,
+      ref: "Vehicle",
+    },
+
+    lossLocation: {
+      type: String,
+      ref: "Address",
+    },
+
+    isInjured: {
+      type: Boolean,
+      default: false,
+    },
+
+    isReported: {
+      type: Boolean,
+      default: false,
+    },
+
+    lossDescription: {
+      type: String,
+    },
+
+    partiesInvolved: [
+      {
+        type: String,
+        ref: "ClaimContact",
+      },
+    ],
+
     noteToAdjuster: {
-      subject: { type: String, required: true },
-      body: { type: String, required: true },
+      subject: { type: String },
+      body: { type: String },
     },
 
     vehicleDamaged: {
       affectedAreas: [
         {
-          code: { type: String, required: true },
-          name: { type: String, required: true },
+          code: { type: String },
+          name: { type: String },
         },
       ],
-      estimatedLossAmount: { type: String, default: "0" },
-      safetyConcern: { type: Boolean, default: true },
+      estimatedLossAmount: {
+        type: String,
+        default: "0",
+      },
+      safetyConcern: {
+        type: Boolean,
+        default: false,
+      },
     },
+
     documents: [
       {
-        _id: { type: String, required: true },
-        refId: { type: String, required: true },
-        name: { type: String, required: true },
-        security: {
-          code: { type: String, required: true },
-          name: { type: String, required: true },
-        },
+        type: String,
+        ref: "ClaimDocument",
       },
     ],
-    claimNumber: { type: String, required: "" },
+
+    claimNumber: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true,
+    },
+
     status: {
-      code: { type: String, required: true },
-      name: { type: String, required: true },
+      code: {
+        type: String,
+        default: "DRAFT",
+      },
+      name: {
+        type: String,
+        default: "Draft",
+      },
     },
   },
   {

@@ -1,3 +1,7 @@
+const ClaimContact = require("./ClaimContact");
+const ClaimDocument = require("./ClaimDocument");
+const ClaimContactRole = require("./typelist/ClaimContactRole");
+
 module.exports = {
   Account: require("./Account"),
   Address: require("./Address"),
@@ -29,4 +33,9 @@ module.exports = {
   LossCause: require("./typelist/LossCause"),
   ClaimStatus: require("./typelist/ClaimStatus"),
   AffectedAreas: require("./typelist/AffectedAreas"),
+  Claim: require("./Claim"),
+  ClaimContact: require("./ClaimContact"),
+  ClaimContactRole: require("./typelist/ClaimContactRole"),
+  DocumentSecurityType: require("./typelist/DocumentSecurityType"),
+  ClaimDocument: require("./ClaimDocument"),
 };
