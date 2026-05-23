@@ -23,7 +23,6 @@ const claimPopulate = [
   select: "-__v",
 }));
 
-// Generate claim number
 const generateClaimNumber = async () => {
   const today = new Date();
 
@@ -39,7 +38,6 @@ const generateClaimNumber = async () => {
   return `DR_CLM-${datePart}-${sequence}`;
 };
 
-// Helper: resolve partiesInvolved — create new contacts, keep existing IDs
 const resolveContacts = async (partiesInvolved) => {
   const contacts = [];
   for (const contact of partiesInvolved) {
@@ -48,18 +46,30 @@ const resolveContacts = async (partiesInvolved) => {
       continue;
     }
     if (!contact || typeof contact !== "object") continue;
+
     const { _id, ...contactData } = contact;
+
     if (_id) {
       contacts.push(_id);
       continue;
     }
+
+    if (contactData.emailAddress) {
+      const existing = await ClaimContact.findOne({
+        emailAddress: contactData.emailAddress,
+      });
+      if (existing) {
+        contacts.push(existing._id);
+        continue;
+      }
+    }
+
     const saved = await ClaimContact.create(contactData);
     contacts.push(saved._id);
   }
   return contacts;
 };
 
-// Helper: resolve documents — create new docs, keep existing IDs
 const resolveDocuments = async (documents) => {
   const docs = [];
   for (const document of documents) {
